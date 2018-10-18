@@ -18,39 +18,38 @@ import os
 
 
 class ExternalDataLoader:
-	def __init__(self, path):
-		self.path = path
-		self.fileHandle = open(path, "rb") 
+	def __init__(self, filePath):
+		self.filePath = filePath
+		self.fileHandle = open(self.filePath, "rb") 
 
-	def printOutFileContent(self):
-		return self.fileHandle.read()
-		# print(self.fileHandle.read()) // instead of ^
-
-	def close(self):
+	def closeFileHandle(self):
 		if self.fileHandle:
 			fileHandle.close()
 
+	def getFileContent(self):
+		return self.fileHandle.read()
+
 	def getFileSize(self):
-		fileStats = os.stat(self.path)
-		size = fileStats.st_size
-		return size
+		return os.path.getsize(self.filePath)
 
 def main():
-	choice = True
+	# Printing menu
 	print("Advanced Algorithms and Data Structures\nFT BSc Computer Science (Year 3)\nGoldsmiths, University of London\n\nStatic / Adaptive Huffman Coding\nby Wojciech Tyziniec\n")
 
-	print("1. Input data\n2. Display the frequency table\n3. Compress\n4. Decompress\nX. Exit")
+	# Perform the main loop until user enters X or x to exit
+	choice = True
 	while choice:
+		print("1. Input data\n2. Display the frequency table\n3. Compress\n4. Decompress\nX. Exit")
 		choice = input("\nPlease, choose an option from the menu displayed above: ")
+
 		if choice == "1":
 			print("F. Read from file\nS. Get input string from the user")
 			sub_choice = input("\nPlease, choose an option from the menu displayed above: ")
 			if sub_choice == "F" or sub_choice == "f":
 				path = input("\nEnter the file's path: ")
 				dataLoader = ExternalDataLoader(path)
-				#dataLoader.loadDataFromFile(path)
-				print("You have loaded: ", dataLoader.printOutFileContent(), " which takes: ", dataLoader.getFileSize(), "bytes of space")
-				dataLoader.printOutFileContent()
+				print("You have loaded: ", dataLoader.getFileContent(), " which takes: ", dataLoader.getFileSize(), "bytes of space.\n")
+				
 			elif sub_choice == "S" or sub_choice == "s":
 				text = input("\nInput data you would like to compress: ")
 				print(text)
