@@ -13,14 +13,47 @@
 	to build up an optimal way of representing each character as a binary string. "
 
 '''
+import sys
+import os
+
+
+class ExternalDataLoader:
+	def __init__(self, path):
+		self.path = path
+		self.fileHandle = open(path, "rb") 
+
+	def printOutFileContent(self):
+		return self.fileHandle.read()
+		# print(self.fileHandle.read()) // instead of ^
+
+	def close(self):
+		if self.fileHandle:
+			fileHandle.close()
+
+	def getFileSize(self):
+		fileStats = os.stat(self.path)
+		size = fileStats.st_size
+		return size
+
 def main():
 	choice = True
-	print("Huffman Coding")
+	print("Advanced Algorithms and Data Structures\nFT BSc Computer Science (Year 3)\nGoldsmiths, University of London\n\nStatic / Adaptive Huffman Coding\nby Wojciech Tyziniec\n")
+
 	print("1. Input data\n2. Display the frequency table\n3. Compress\n4. Decompress\nX. Exit")
 	while choice:
 		choice = input("\nPlease, choose an option from the menu displayed above: ")
 		if choice == "1":
-			print("Input your text: ")
+			print("F. Read from file\nS. Get input string from the user")
+			sub_choice = input("\nPlease, choose an option from the menu displayed above: ")
+			if sub_choice == "F" or sub_choice == "f":
+				path = input("\nEnter the file's path: ")
+				dataLoader = ExternalDataLoader(path)
+				#dataLoader.loadDataFromFile(path)
+				print("You have loaded: ", dataLoader.printOutFileContent(), " which takes: ", dataLoader.getFileSize(), "bytes of space")
+				dataLoader.printOutFileContent()
+			elif sub_choice == "S" or sub_choice == "s":
+				text = input("\nInput data you would like to compress: ")
+				print(text)
 			
 		if choice == "2":
 			print("I'm going to print out the frequency table.")
