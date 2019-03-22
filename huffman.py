@@ -13,24 +13,20 @@
 	to build up an optimal way of representing each character as a binary string. "
 
 '''
-import logging
-import sys
+from heapq import heappush, heappop, heapify
+from collections import defaultdict
 import os
-import queue as Q
-class Huffman:
-	def __init__(self, content):
-		self.content = content
-		self.frequencyTable = {}
+import collections
 
-class ExternalDataLoader:
+class DataLoader:
 	def __init__(self, filePath):
 		self.filePath = filePath
-		self.fileHandle = open(self.filePath, "r") # At this point we want to read only ASCII representation of characters, not bytes yet, as we have to build a frequency table, thus we're using "r" not "rb"
-		
+		self.fileHandle = open(self.filePath, "r")
 		self.data = self.fileHandle.read()
-		self.frequencyTable = {}
 
+	# Build a dictionary of characters and corresponding frequencies
 	def buildFrequencyTable(self):
+		self.frequencyTable = defaultdict(int)
 		for c in self.data:
 			if c not in self.frequencyTable:
 				self.frequencyTable[c] = 1
@@ -38,78 +34,92 @@ class ExternalDataLoader:
 				self.frequencyTable[c] += 1
 		print("Type of 'frequencyTable' = ", type(self.frequencyTable))
 
-	def closeFileHandle(self):
-		if self.fileHandle:
-			fileHandle.close()
+	# Print out the frequency table in desc order
+	def printOutFrequencyTable(self):
+		self.frequencyTableSorted = sorted(self.frequencyTable.items(), key=lambda x:x[1], reverse=True)
+		for x in range(0, len(self.frequencyTableSorted)):
+			print(self.frequencyTableSorted[x])
 
-	def getFileContent(self):
-		return self.fileHandle.read()
+		# Testing
+		#for char, freq in self.frequencyTable.items():
+			#print("Char = ", char, ", freq = ", freq)
 
+	# Helper function which returns size of the loaded file
 	def getFileSize(self):
 		return os.path.getsize(self.filePath)
 
-	def printOutFrequencyTable(self):
-		self.frequencyTable = sorted(self.frequencyTable.items(), key=lambda x:x[1], reverse=True)
-		for x in range(0, len(self.frequencyTable)):
-			print(self.frequencyTable[x])
+	# Function takes as an input a frequency table and returns corresponding huffman codes
+	def returnHuffmanCodes(self):
+		# I'm using priority queue as main data structure
+	    pqueue = [[frequency, [character, ""]] for character, frequency in self.frequencyTable.items()]
+
+	    # To keep in order (lowest freq - highest freq)
+	    heapify(pqueue)
+
+	    # While there are nodes in our priority queue,
+	    # we want to merge two nodes with the lowest frequency
+	    while len(pqueue) > 1:
+	        first = heappop(pqueue) # first node with lowest freq
+	       	#print("first = ", first)
+	        second = heappop(pqueue) # second node with lowest freq 
+	       	#print("second = ", second)
+	        for merge in first[1:]:
+	            merge[1] = '0' + merge[1]
+	        for merge in second[1:]:
+	            merge[1] = '1' + merge[1]
+	        heappush(pqueue, [first[0] + second[0]] + first[1:] + second[1:]) # add recently combined nodes to the priority queue
+	    # sort the list in asc order by length of huff code
+	    return sorted(heappop(pqueue)[1:], key=lambda p: (len(p[-1]), p))
 
 def main():
-	logging.basicConfig(format='%(asctime)s %(message)s')
-	# Printing menu
-	print("Advanced Algorithms and Data Structures\nFT BSc Computer Science (Year 3)\nGoldsmiths, University of London\n\nStatic / Adaptive Huffman Coding\nby Wojciech Tyziniec\n")
+	print("Advanced Algorithms and Data Structures\nFT BSc Computer Science (Year 3)\nGoldsmiths, University of London\n\nImplementation of Huffman Encoding Algorithm\nby Wojciech Tyziniec\n")
+	choice = True
 	data = ""
+	dataLoader = ""
 
 	# Perform the main loop until user enters X or x to exit
-	choice = True
 	while choice:
-		print("1. Input data\n2. Display sorted frequency table\n3. Compress\n4. Decompress\nX. Exit")
-		choice = input("\nPlease, choose an option from the menu displayed above: ")
+			print("\n1. Input data\n2. Build and display sorted frequency table\n3. Encode and display huffman codes\nX. Exit")
+			choice = input("\nPlease, choose an option from the menu displayed above: ")
 
-		if choice == "1":
-			path = input("\nEnter the file's path: ")
-			logging.warning("Loading data...")
-			dataLoader = ExternalDataLoader(path)
-			logging.warning("Finished loading data!")
-			if(len(dataLoader.data) > 100):
-				print("Loading successful! Your file takes: ", dataLoader.getFileSize(), "bytes of space\n")
-			else:
-				print("You have loaded: ", dataLoader.data, " which takes: ", dataLoader.getFileSize(), "bytes of space.\n")
-			data = dataLoader.data
+			if choice == "1":
+				print("Example files: \n- long.txt,\n- short.txt")
+				path = input("\nEnter the file's path: ")
+				# Load a file from the given path
+				dataLoader = DataLoader(path) 
 
-		if choice == "2":
-			print("I'm going to print out the frequency table. \n")
-			huffman = Huffman(data)
-			dataLoader.buildFrequencyTable()
-			dataLoader.printOutFrequencyTable()
+				# If length of our data is > 100, we dont want to print it out, so im printing its overall size.
+				if(len(dataLoader.data) > 100):
+					print("Loading successful! Your data takes up: ", dataLoader.getFileSize(), "bytes of space\n")
+					print("Next step is to build a frequency table!\n\n")
+				else:
+					print("You have loaded: ", dataLoader.data, " which takes: ", dataLoader.getFileSize(), "bytes of space.\n")
+					print("Next step is to build a frequency table!\n\n")
+				data = dataLoader.data
 
-		if choice == "3":
-			print("I'm going to compress the data.")
+			if choice == "2":
+				# If data has not been correctly loaded or is empty, we cannot build freq table
+				if data != "":
+					dataLoader.buildFrequencyTable()
+					dataLoader.printOutFrequencyTable()
+					print("Great! You're ready to compress the data!\n\n")
+				else:
+					print("\nFirst you need to enter some data!")
 
+			if choice == "3":
+				# If data has not been correctly loaded or is empty, we cannot build freq table
+				if isinstance(dataLoader, str):
+					print("First you need to load up some data!")
+				else:
+					print("Going to compress and print out tuples containing (character, frequency, corresponding huffman code).")
+					codes = dataLoader.returnHuffmanCodes()
+					for x in codes:
+						print (x[0], dataLoader.frequencyTable[x[0]], x[1])
+					print("There you go! My pleasure :)")
 
+			if choice == "X" or choice == "x":
+				print("Goodbye!")
+				break;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		if choice == "4":
-			print("I'm going to decompress the data.")
-			
-		if choice == "X" or choice == "x":
-			print("\nGoodbye!")
-			choice = None
 if __name__ == "__main__":
 	main()
